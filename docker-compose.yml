@@ -33,11 +33,14 @@ services:
       DATABASE_URL: postgres://${POSTGRES_USER:-civicwatch}:${POSTGRES_PASSWORD:-civicwatch}@db:5432/${POSTGRES_DB:-civicwatch}
       JWT_SECRET: ${JWT_SECRET:-change-me-in-production}
       PORT: 4000
+      IEC_API_URL: ${IEC_API_URL:-http://iec-api:8080}
     volumes:
       - uploads:/data/uploads
     depends_on:
       db:
         condition: service_healthy
+      iec-api:
+        condition: service_started
 
   iec-api:
     build: ./iec-api

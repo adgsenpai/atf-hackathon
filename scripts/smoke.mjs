@@ -103,5 +103,20 @@ ok(iecHealth.trim() === 'ok', 'Rust IEC API reachable through nginx');
 const parties = await api('/iec/api/parties?limit=3');
 ok(parties.status === 200, 'IEC parties list');
 
+// Real IEC party registry through the civic API
+const pMeta = await api('/api/parties/meta');
+ok(pMeta.status === 200 && pMeta.data.count > 100 && pMeta.data.url?.includes('elections.org.za') && pMeta.data.scraped_at, 'party registry meta exposes IEC source + scrape date');
+const pList = await api('/api/parties?q=democratic&level=National&limit=5');
+ok(pList.status === 200 && pList.data.items.length > 0 && pList.data.items.every((x) => x.levels.includes('National')), 'party list filters by level');
+ok(pList.data.items.every((x) => !('votes' in x) && !('seats' in x)), 'party registry never carries votes/seats');
+const withLogo = (await api('/api/parties?has_logo=true&limit=1')).data.items[0];
+ok(withLogo?.logo?.startsWith('/iec/logos/'), 'party logos are served through /iec');
+const logo = await fetch(BASE + withLogo.logo);
+ok(logo.status === 200 && (logo.headers.get('content-type') || '').startsWith('image/'), 'party logo image loads');
+const one = await api(`/api/parties/${withLogo.id}`);
+ok(one.status === 200 && one.data.id === withLogo.id && one.data.source?.url, 'party detail with source');
+ok((await api('/api/parties/no-such-party-xyz')).status === 404, 'unknown party is 404');
+ok((await api('/api/parties?level=Galactic')).status === 400, 'invalid level is 400');
+
 console.log(failures ? `\n${failures} check(s) failed` : '\nAll checks passed');
 process.exit(failures ? 1 : 0);
