@@ -15,6 +15,19 @@ cargo run --release -- serve           # http://localhost:8080
 Options: `--data-dir <dir>` (or `IEC_DATA_DIR`), `scrape --delay-ms 300 --skip-logos --logo-concurrency 6`,
 `serve --bind 0.0.0.0:8080` (or `BIND`), `--refresh-token` (or `REFRESH_TOKEN`) to enable `POST /api/refresh`.
 
+## Docker Compose
+
+From the repo root (`docker-compose.yml`):
+
+```bash
+docker compose up -d --build                         # API on http://localhost:8080
+docker compose run --rm iec-scrape                   # re-scrape into ./iec-api/data
+docker compose restart iec-api                       # reload after a re-scrape
+REFRESH_TOKEN=secret docker compose up -d            # enable POST /api/refresh
+```
+
+`./iec-api/data` is mounted at `/app/data`, so scraped JSON and logos persist on the host.
+
 ## Endpoints
 
 | Method | Path | Description |

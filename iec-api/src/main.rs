@@ -61,6 +61,7 @@ async fn main() -> anyhow::Result<()> {
         Cmd::Serve { bind, refresh_token } => {
             let data = server::load(&cli.data_dir).await?;
             tracing::info!(parties = data.count, %bind, "serving");
+            let refresh_token = refresh_token.filter(|t| !t.trim().is_empty());
             let app = server::router(data, cli.data_dir, refresh_token);
             let listener = tokio::net::TcpListener::bind(&bind).await?;
             axum::serve(listener, app).await?;
