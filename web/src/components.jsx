@@ -25,6 +25,16 @@ export const ProvenanceBadge = ({ official, responded, long }) =>
     ? <span className="badge official">{official ? 'Municipality confirmed' : 'Municipality responded'}</span>
     : <span className="badge user">{long ? 'Status is user-reported' : 'User-reported status'}</span>;
 
+export function SampleIllustration({ category }) {
+  const label = category.replaceAll('_', ' ');
+  return (
+    <figure className="sample-illustration">
+      <img src={`/sample-problems/${category}.svg`} alt={`Illustration of a ${label} service problem`} loading="lazy" />
+      <figcaption>Sample illustration · not resident-submitted evidence</figcaption>
+    </figure>
+  );
+}
+
 export function Notice({ children, kind, icon = 'i' }) {
   return <div className={`notice ${kind || ''}`}><span className="notice-icon" aria-hidden>{icon}</span><div>{children}</div></div>;
 }
@@ -37,6 +47,7 @@ export function ReportCard({ r }) {
         <StatusBadge status={r.status} />
         <ProvenanceBadge official={r.status_source === 'official'} responded={r.municipality_responded} />
       </div>
+      {r.is_sample && <SampleIllustration category={r.category} />}
       <h3>{r.title}</h3>
       <div className="small muted">
         {[r.municipality, r.ward, `Observed ${fmtDate(r.observed_on)}`, `${r.followers} follow`, `${r.updates} updates`].filter(Boolean).join(' · ')}

@@ -134,6 +134,9 @@ textarea.input { min-height: 110px; resize: vertical; }
 .report-card:hover { border-color: var(--teal); }
 .report-card h3 { font-family: var(--sans); font-size: 16px; font-weight: 700; margin: 8px 0 4px; }
 .report-list > * + * { margin-top: 10px; }
+.sample-illustration { margin: 14px 0 0; }
+.sample-illustration img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--line); border-radius: 8px; }
+.sample-illustration figcaption { margin-top: 4px; color: var(--muted); font-size: 12px; }
 
 .principles { border-top: 1px solid var(--line); margin-top: 48px; padding: 28px 0 40px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .principles h3 { font-family: var(--sans); font-size: 15px; font-weight: 700; }

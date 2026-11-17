@@ -1,10 +1,16 @@
 # CivicWatch Africa — MVP
 
-See what is broken in your area, and whether anyone has responded.
+Civiv Watch is an app to help residents enagge with their civic leaders to report problems they are facing, and have a view of prblems others have reported, and whether anyone has responded.
 
-Residents report municipal service problems (water, electricity, roads, sanitation, waste, stormwater, public spaces), add updates and follow each report's status. Every status shows whether it is **user-reported** or **municipality confirmed**. Election results, current council composition and service performance are shown **separately and never combined into a score**.
+Residents report municipal service problems (water, electricity, roads, sanitation, waste, stormwater, public spaces), add updates and follow each report's status. Every status shows whether it is **user-reported** or **municipality confirmed**. Election results, current council composition and service performance are also shown, so residents may report and measure performanced of their elected representatives.
 
-Pilot area: City of Cape Town. **All seed data is illustrative sample data.**
+Pilot area: City of Cape Town. **Prolems seed data is illustrative sample data.**
+
+
+## To minimize tokens
+ Built a spec and worked on the spec document to improve it
+ Built the app after specs were done
+ Compacted the context to reduce tokens
 
 ## Quick start
 

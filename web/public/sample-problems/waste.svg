@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#dcebe8"/><stop offset="1" stop-color="#f4e5c8"/></linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#sky)"/>
+  <path d="M0 232 136 129l104 77 121-108 157 136 109-87 173 104v82H0Z" fill="#9eb7ad"/>
+  <path d="M0 283h800v167H0z" fill="#87977c"/>
+  <path d="M0 350h800v100H0z" fill="#65736d"/>
+  <path d="M0 350h800" stroke="#ded2ba" stroke-width="8"/>
+  <path d="M140 257h90l-9 102h-72z" fill="#527e77"/>
+  <path d="M131 248h108v17H131z" fill="#355b57"/>
+  <path d="M161 232h48v16h-48z" fill="#355b57"/>
+  <path d="M262 275h92l-9 84h-75z" fill="#c58a58"/>
+  <path d="M252 267h112v17H252z" fill="#9a6346"/>
+  <path d="M281 250h48v17h-48z" fill="#9a6346"/>
+  <path d="M134 315q46-14 99 0v31q-49 14-99 0Z" fill="#7bb2a0"/>
+  <path d="M257 310q46-14 103 0v33q-54 15-103 0Z" fill="#d3a26b"/>
+  <path d="m432 339 27-16 20 13-19 11Zm55 0 26-21 21 15-18 12Zm55 2 19-14 18 11-18 10Z" fill="#d6b875"/>
+  <path d="m463 319 8-18 13 13m26 0 6-20 13 16m30 7 9-19 10 17" fill="none" stroke="#c87958" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="619" cy="253" r="39" fill="#72956d"/>
+  <path d="M619 280v50" stroke="#75533c" stroke-width="15"/>
+</svg>

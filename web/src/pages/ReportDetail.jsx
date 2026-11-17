@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { api, fmtDate, fmtDateTime } from '../api.js';
 import { useAuth } from '../auth.jsx';
 import {
-  CategoryBadge, FlagDialog, Modal, Notice, ProvenanceBadge, STATUS_LABEL, StatusBadge, TextDialog, useRequireSignIn, useToast,
+  CategoryBadge, FlagDialog, Modal, Notice, ProvenanceBadge, SampleIllustration, STATUS_LABEL, StatusBadge, TextDialog, useRequireSignIn, useToast,
 } from '../components.jsx';
 import { PinMap } from '../MapView.jsx';
 
@@ -87,6 +87,7 @@ export default function ReportDetail() {
           <section className="card">
             <h2>Description</h2>
             <p style={{ whiteSpace: 'pre-wrap' }}>{r.description}</p>
+            {r.is_sample && <SampleIllustration category={r.category} />}
             <h3 style={{ marginTop: 18 }}>Evidence ({r.photos.length} photo{r.photos.length === 1 ? '' : 's'})</h3>
             {r.photos.length ? (
               <div className="photos">
