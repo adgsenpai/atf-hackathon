@@ -1,0 +1,22 @@
+services:
+  iec-api:
+    build: ./iec-api
+    image: iec-api:latest
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      RUST_LOG: info
+      # Set to enable POST /api/refresh (re-scrape). Leave empty to disable.
+      REFRESH_TOKEN: ${REFRESH_TOKEN:-}
+    volumes:
+      # parties.json + logos/ ; re-scrapes write back here.
+      - ./iec-api/data:/app/data
+
+  # One-off re-scrape: docker compose run --rm iec-scrape
+  iec-scrape:
+    image: iec-api:latest
+    profiles: ["scrape"]
+    command: ["scrape"]
+    volumes:
+      - ./iec-api/data:/app/data
