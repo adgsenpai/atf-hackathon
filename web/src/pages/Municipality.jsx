@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, qs } from '../api.js';
 import { Notice, SourceLine, TextDialog, useRequireSignIn } from '../components.jsx';
+import { PartyCard, RegistrySource } from './Parties.jsx';
 
-const TABS = [['responsibilities', 'Responsibilities'], ['elections', 'Election results'], ['council', 'Current council'], ['performance', 'Performance']];
+const TABS = [['responsibilities', 'Responsibilities'], ['elections', 'Election results'], ['council', 'Current council'], ['parties', 'Registered parties'], ['performance', 'Performance']];
 
 export default function Municipality() {
   const { slug } = useParams();
@@ -12,6 +13,8 @@ export default function Municipality() {
   const [year, setYear] = useState('');
   const [council, setCouncil] = useState(null);
   const [perf, setPerf] = useState(null);
+  const [parties, setParties] = useState(null);
+  const [showAllParties, setShowAllParties] = useState(false);
   const [tab, setTab] = useState('responsibilities');
   const [correction, setCorrection] = useState(null);
   const needUser = useRequireSignIn();
@@ -20,6 +23,7 @@ export default function Municipality() {
     api(`/municipalities/${slug}`).then(setM);
     api(`/municipalities/${slug}/council`).then(setCouncil);
     api(`/municipalities/${slug}/performance`).then(setPerf);
+    api(`/municipalities/${slug}/parties`).then(setParties).catch((e) => setParties({ error: e.message }));
   }, [slug]);
   useEffect(() => { api(`/municipalities/${slug}/elections${qs({ year })}`).then(setEl); }, [slug, year]);
 
@@ -129,6 +133,36 @@ export default function Municipality() {
           </div>
         )}
         <SourceLine s={council?.source} extra={<> · Rule: {council?.rule?.toLowerCase()}</>} />
+      </section>
+
+      <section id="parties" className="card" style={{ marginTop: 20, scrollMarginTop: 90 }}>
+        <h2>Registered political parties</h2>
+        <p className="small muted">Real data · The Electoral Commission of South Africa (IEC) register of parties. Registration is not representation: this says who may contest, not who won or who governs.</p>
+        {parties?.error && <Notice kind="warn">{parties.error}</Notice>}
+        {parties && !parties.error && (
+          <>
+            <div className="badges" style={{ margin: '6px 0 12px' }}>
+              <span className="badge">{parties.total} registered at {parties.level} level</span>
+              <span className="badge">{parties.items.filter((p) => p.local_address).length} with a registered address in {parties.place.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase())}</span>
+              <span className="badge">+ {parties.national_total} national parties may also contest</span>
+            </div>
+            <div className="party-grid">
+              {(showAllParties ? parties.items : parties.items.slice(0, 8)).map((p) => (
+                <div key={p.id} style={{ position: 'relative' }}>
+                  <PartyCard p={p} />
+                  {p.local_address && <span className="badge" style={{ position: "absolute", right: 10, bottom: 10 }}>Local address</span>}
+                </div>
+              ))}
+            </div>
+            <div className="row" style={{ gap: 12, marginTop: 12 }}>
+              {parties.items.length > 8 && <button className="btn btn-sm" onClick={() => setShowAllParties(!showAllParties)}>{showAllParties ? 'Show fewer' : `Show all ${parties.items.length}`}</button>}
+              <Link className="btn btn-sm" to={`/parties?level=${parties.level}`}>Open in party directory</Link>
+            </div>
+            <p className="xs muted" style={{ marginTop: 10 }}>{parties.note} Parties are listed alphabetically, never colour-coded or ranked.</p>
+            <RegistrySource source={parties.source} />
+          </>
+        )}
+        {!parties && <p className="muted small">Loading the IEC register…</p>}
       </section>
 
       <section id="performance" className="card" style={{ marginTop: 20, scrollMarginTop: 90 }}>

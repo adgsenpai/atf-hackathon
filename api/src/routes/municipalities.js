@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { q, one } from '../db.js';
 import { ACK_STATUSES, STATUSES, refOf } from '../constants.js';
+import { listParties, registryMeta } from './parties.js';
 
 const r = Router();
 
@@ -52,6 +53,31 @@ r.get('/municipalities/:slug/council', async (req, res) => {
   const changes = await q('SELECT effective_date, description, source_url FROM council_changes WHERE municipality_id=$1 ORDER BY id', [m.id]);
   res.json({ snapshot: snap, seats, changes, source: await sourceOf(m.id, 'council'),
     rule: 'Current control is never inferred from historical election results.' });
+});
+
+// Real IEC party registry, scoped by registration level. Registry only: no votes, no seats, no inferred control.
+const levelForKind = (kind = '') => (/metropolitan/i.test(kind) ? 'Metro' : 'District');
+r.get('/municipalities/:slug/parties', async (req, res) => {
+  const m = await getMuni(req.params.slug);
+  if (!m) return res.status(404).json({ error: 'Municipality not found' });
+  const level = levelForKind(m.kind);
+  try {
+    const [local, national, source] = await Promise.all([
+      listParties({ level, limit: 200 }),
+      listParties({ level: 'National', limit: 1 }),
+      registryMeta(),
+    ]);
+    const place = m.name.replace(/^(City of|.* Metropolitan Municipality)\s*/i, '').trim().toUpperCase();
+    const items = local.items.map((p) => ({ ...p, local_address: !!place && (p.address || '').toUpperCase().includes(place) }))
+      .sort((a, b) => (b.local_address - a.local_address) || a.name.localeCompare(b.name));
+    res.json({
+      level, place, items, total: local.total, national_total: national.total, source,
+      note: `The IEC register lists the level a party is registered at (${level}), not the specific municipality. "Registered address in ${place ? place.toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : 'this area'}" is based on the party's registered address only.`,
+    });
+  } catch (e) {
+    if (e.status) return res.status(e.status === 404 ? 502 : e.status).json({ error: e.message });
+    throw e;
+  }
 });
 
 // ---------- Performance ----------

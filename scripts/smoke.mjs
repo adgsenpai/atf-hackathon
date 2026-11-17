@@ -118,5 +118,10 @@ ok(one.status === 200 && one.data.id === withLogo.id && one.data.source?.url, 'p
 ok((await api('/api/parties/no-such-party-xyz')).status === 404, 'unknown party is 404');
 ok((await api('/api/parties?level=Galactic')).status === 400, 'invalid level is 400');
 
+const mParties = await api('/api/municipalities/city-of-cape-town/parties');
+ok(mParties.status === 200 && mParties.data.level === 'Metro' && mParties.data.items.length === mParties.data.total && mParties.data.items.every((x) => x.levels.includes('Metro')), 'municipality lists Metro-level IEC parties');
+ok(mParties.data.items.some((x) => x.local_address) && mParties.data.note && mParties.data.source?.scraped_at, 'municipality parties flag local addresses and cite source');
+ok(mParties.data.items.every((x) => !('votes' in x) && !('seats' in x)), 'municipality party list has no votes/seats');
+
 console.log(failures ? `\n${failures} check(s) failed` : '\nAll checks passed');
 process.exit(failures ? 1 : 0);
