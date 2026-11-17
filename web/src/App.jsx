@@ -9,6 +9,7 @@ import Municipality from './pages/Municipality.jsx';
 import Performance from './pages/Performance.jsx';
 import Moderation from './pages/Moderation.jsx';
 import SignIn from './pages/SignIn.jsx';
+import Parties from './pages/Parties.jsx';
 import { Methods, Rules, NotFound } from './pages/Static.jsx';
 
 function Header() {
@@ -31,6 +32,7 @@ function Header() {
           <nav className={`nav ${open ? 'open' : ''}`} aria-label="Main">
             <NavLink to="/reports">Reports</NavLink>
             <NavLink to="/municipalities">Municipalities</NavLink>
+            <NavLink to="/parties">Parties</NavLink>
             <NavLink to="/methods">Data &amp; methods</NavLink>
             <NavLink to="/rules">Community rules</NavLink>
             {isMod && <NavLink to="/moderation">Moderation</NavLink>}
@@ -71,6 +73,7 @@ export default function App() {
           <Route path="/municipalities" element={<Municipalities />} />
           <Route path="/municipalities/:slug" element={<Municipality />} />
           <Route path="/municipalities/:slug/performance" element={<Performance />} />
+          <Route path="/parties" element={<Parties />} />
           <Route path="/moderation/*" element={<Moderation />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/methods" element={<Methods />} />
