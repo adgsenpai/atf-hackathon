@@ -2,7 +2,11 @@ import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, qs } from '../api.js';
 import { Notice, SourceLine, TextDialog, useRequireSignIn } from '../components.jsx';
-import { PartyCard, RegistrySource } from './Parties.jsx';
+import { PartyCard, PartyLogo, RegistrySource } from './Parties.jsx';
+
+const PartyName = ({ name, registry }) => (registry
+  ? <Link to={`/parties/${registry.id}`} className="party-inline" title="IEC registry entry"><PartyLogo party={registry} size={22} />{name}</Link>
+  : <>{name}</>);
 
 const TABS = [['responsibilities', 'Responsibilities'], ['elections', 'Election results'], ['council', 'Current council'], ['parties', 'Registered parties'], ['performance', 'Performance']];
 
@@ -85,14 +89,14 @@ export default function Municipality() {
             <tbody>
               {el?.results.map((x) => (
                 <tr key={x.party}>
-                  <td>{x.party}</td><td className="num">{x.votes.toLocaleString('en-ZA')}</td><td className="num">{x.share.toFixed(1)}%</td>
+                  <td><PartyName name={x.party} registry={x.registry} /></td><td className="num">{x.votes.toLocaleString('en-ZA')}</td><td className="num">{x.share.toFixed(1)}%</td>
                   <td><div className="bar" aria-hidden><span style={{ width: `${(x.share / maxShare) * 100}%` }} /></div></td><td className="num">{x.seats}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-        <p className="xs muted">All bars use one neutral colour. Parties are not colour-coded. {el?.election?.is_sample && 'Sample rows show layout only; no real results appear in this MVP.'}</p>
+        <p className="xs muted">All bars use one neutral colour. Parties are not colour-coded. {el?.election?.is_sample && 'Sample rows show layout only; no real results appear in this MVP.'} Party names that exactly match the IEC register link to the registry entry; sample rows never do.</p>
         <SourceLine s={el?.source} extra={<> · <button className="linkbtn" onClick={() => needUser() && setCorrection({ target_type: 'election', target_id: el?.election?.id })}>Report an error</button></>} />
       </section>
 
@@ -111,7 +115,7 @@ export default function Municipality() {
                   <thead><tr><th>Party</th><th className="num">Seats now</th><th className="num">Change since election</th></tr></thead>
                   <tbody>
                     {council.seats.map((s) => (
-                      <tr key={s.party}><td>{s.party}</td><td className="num">{s.seats_now}</td><td className="num">{s.change > 0 ? `+${s.change}` : s.change === 0 ? '±0' : s.change}</td></tr>
+                      <tr key={s.party}><td><PartyName name={s.party} registry={s.registry} /></td><td className="num">{s.seats_now}</td><td className="num">{s.change > 0 ? `+${s.change}` : s.change === 0 ? '±0' : s.change}</td></tr>
                     ))}
                   </tbody>
                 </table>

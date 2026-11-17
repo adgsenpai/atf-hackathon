@@ -82,6 +82,27 @@ export async function listParties({ q, level, has_logo, limit, offset } = {}) {
   return { items: body.items.map(shapeParty), total: body.total, limit: body.limit, offset: body.offset };
 }
 
+// Match free-text party names (results, council rows) to registry entries by exact
+// normalised name or abbreviation. Unmatched or sample rows get null — never a guess.
+const norm = (x) => String(x || '').toUpperCase().replace(/&/g, 'AND').replace(/[^A-Z0-9]+/g, ' ').trim();
+export async function partyMatcher() {
+  try {
+    const { body } = await iecGet('/api/parties.json');
+    const byName = new Map(); const byAbbr = new Map();
+    for (const p of body.parties || []) {
+      byName.set(norm(p.name), p);
+      if (p.abbreviation) byAbbr.set(norm(p.abbreviation), (byAbbr.has(norm(p.abbreviation)) ? null : p));
+    }
+    return (label) => {
+      if (!label || /\(sample\)|sample/i.test(label)) return null;
+      const p = byName.get(norm(label)) || byAbbr.get(norm(label));
+      return p ? { id: p.id, name: p.name, abbreviation: p.abbreviation, logo: shapeParty(p).logo } : null;
+    };
+  } catch {
+    return () => null; // registry down: results still render, just without links
+  }
+}
+
 const r = Router();
 const wrap = (fn) => (req, res, next) => fn(req, res).catch((e) => {
   if (e.status && e.status !== 500) return res.status(e.status).json({ error: e.message });

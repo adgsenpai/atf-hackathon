@@ -20,7 +20,7 @@ function Header() {
   useEffect(() => setOpen(false), [loc.pathname]);
   return (
     <>
-      <div className="pilotbar">Pilot area: City of Cape Town · This MVP uses illustrative sample data only</div>
+      <div className="pilotbar">Pilot area: City of Cape Town · Party register is real IEC data; reports, results and council figures are illustrative samples</div>
       <header className="header">
         <div className="container">
           <Link to="/" className="brand" aria-label="CivicWatch Africa home">

@@ -126,5 +126,10 @@ ok(mParties.data.items.every((x) => !('votes' in x) && !('seats' in x)), 'munici
 const spa = await fetch(BASE + '/parties/democratic-alliance-da');
 ok(spa.status === 200 && (await spa.text()).includes('<div id="root">'), 'party detail route served by SPA');
 
+const elx = (await api('/api/municipalities/city-of-cape-town/elections')).data;
+ok(elx.results.every((x) => 'registry' in x) && elx.results.filter((x) => /sample/i.test(x.party)).every((x) => x.registry === null), 'sample result rows are never linked to a real party');
+const cx = (await api('/api/municipalities/city-of-cape-town/council')).data;
+ok(cx.seats.every((x) => 'registry' in x && (!/sample/i.test(x.party) || x.registry === null)), 'council rows carry registry link only for real names');
+
 console.log(failures ? `\n${failures} check(s) failed` : '\nAll checks passed');
 process.exit(failures ? 1 : 0);

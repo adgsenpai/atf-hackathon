@@ -2,7 +2,7 @@
 
 Priority order. Tick only when done and verified by `make test`.
 
-**Status: MVP (P0–P3) complete ✅. Current focus: P4 — real IEC party data.**
+**Status: MVP (P0–P3) and P4 (real IEC party data) complete ✅ — all smoke checks passing. Next iteration starts at the Backlog.**
 
 ## P0b — Repo layout
 - [x] Ralph files live in `ralph-prompts/` (PROMPT.md, specs/, IMPLEMENTATION_PLAN.md, AGENTS.md)
@@ -34,11 +34,12 @@ Source: `iec-api` (Rust) serves the real IEC party registry scraped from electio
 - [x] Express API: `GET /api/parties` (q, level, has_logo, limit, offset) and `GET /api/parties/meta`, proxied to `IEC_API_URL` (default `http://iec-api:8080`) with a short in-memory cache and a clear 502 error when iec-api is down; logo URLs rewritten to `/iec/logos/...`. Add `IEC_API_URL` to docker-compose + .env.example. Smoke tests.
 - [x] Web: `/parties` directory page — search, level filter, has-logo filter, paging, logo + name + abbreviation + levels + contact/website; shows source URL and scraped-at date ("Source: Electoral Commission of South Africa (IEC) · last scraped …"). Nav link. Parties are never colour-coded.
 - [x] Web: Municipality page "Registered parties" tab — Metro-level IEC parties (metro municipality) with logos, plus link to full directory; source + scrape date shown. Kept separate from Election results / Current council.
-- [ ] Election results + council tabs: show the IEC logo next to a party when its name matches a registry entry; keep sample rows clearly labelled sample. Update pilot bar / Methods page to say party registry data is real (IEC) while reports/results remain sample.
+- [x] Election results + council tabs: show the IEC logo next to a party when its name matches a registry entry; keep sample rows clearly labelled sample. Update pilot bar / Methods page to say party registry data is real (IEC) while reports/results remain sample.
 - [x] Party detail `/parties/:id` page (all registry fields, logo, IEC source link).
 - [x] Bug found: `.page` reset `.container` side padding, so pages touched the screen edge below ~1220px. Fixed.
 
 ## Backlog (next iterations)
+- [ ] Real 2021 LGE results + current council for Cape Town from the IEC results API (needs an API key); the registry matcher will then link rows automatically
 - [ ] Email/push notifications to followers on status change
 - [ ] Official municipal integration (send report to municipality) — currently "No integration used"
 - [ ] Real ward boundaries from MDB shapefiles (seed uses illustrative polygons)

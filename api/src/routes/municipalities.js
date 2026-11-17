@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { q, one } from '../db.js';
 import { ACK_STATUSES, STATUSES, refOf } from '../constants.js';
-import { listParties, registryMeta } from './parties.js';
+import { listParties, partyMatcher, registryMeta } from './parties.js';
 
 const r = Router();
 
@@ -34,12 +34,15 @@ r.get('/municipalities/:slug/elections', async (req, res) => {
   const years = await q('SELECT id, year, level, is_sample FROM elections WHERE municipality_id=$1 ORDER BY year DESC', [m.id]);
   const chosen = years.find((y) => String(y.year) === String(req.query.year)) || years[0];
   if (!chosen) return res.json({ years: [], election: null, results: [], source: null });
-  const rows = await q('SELECT party, votes, seats FROM election_results WHERE election_id=$1 ORDER BY sort', [chosen.id]);
+  const [rows, match] = await Promise.all([
+    q('SELECT party, votes, seats FROM election_results WHERE election_id=$1 ORDER BY sort', [chosen.id]),
+    partyMatcher(),
+  ]);
   const total = rows.reduce((s, x) => s + x.votes, 0) || 1;
   res.json({
     years: years.map((y) => y.year),
     election: chosen,
-    results: rows.map((x) => ({ ...x, share: Math.round((x.votes / total) * 1000) / 10 })),
+    results: rows.map((x) => ({ ...x, share: Math.round((x.votes / total) * 1000) / 10, registry: match(x.party) })),
     source: await sourceOf(m.id, 'elections'),
   });
 });
@@ -49,7 +52,9 @@ r.get('/municipalities/:slug/council', async (req, res) => {
   const m = await getMuni(req.params.slug);
   if (!m) return res.status(404).json({ error: 'Municipality not found' });
   const snap = await one('SELECT * FROM council_snapshots WHERE municipality_id=$1 ORDER BY as_of DESC LIMIT 1', [m.id]);
-  const seats = snap ? await q('SELECT party, seats_now, change FROM council_seats WHERE snapshot_id=$1 ORDER BY sort', [snap.id]) : [];
+  const match = await partyMatcher();
+  const seats = (snap ? await q('SELECT party, seats_now, change FROM council_seats WHERE snapshot_id=$1 ORDER BY sort', [snap.id]) : [])
+    .map((x) => ({ ...x, registry: match(x.party) }));
   const changes = await q('SELECT effective_date, description, source_url FROM council_changes WHERE municipality_id=$1 ORDER BY id', [m.id]);
   res.json({ snapshot: snap, seats, changes, source: await sourceOf(m.id, 'council'),
     rule: 'Current control is never inferred from historical election results.' });

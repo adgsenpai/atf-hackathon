@@ -32,3 +32,4 @@ Run from the repo root, e.g. `while :; do cat ralph-prompts/PROMPT.md | <agent-c
 - Re-scrape IEC data: `docker compose run --rm iec-scrape && docker compose restart iec-api`.
 - Changing `db/init` requires `docker compose down -v` to take effect.
 - Test stack alongside a running dev stack: `WEB_PORT=8098 DB_PORT=5443 IEC_PORT=8091 docker compose -p cwreal up --build -d` then `BASE_URL=http://localhost:8098 make test`.
+- Party data: `api/src/routes/parties.js` proxies iec-api (`IEC_API_URL`, 60 s cache). `partyMatcher()` links result/council rows by exact name/abbreviation; anything containing 'sample' never matches.

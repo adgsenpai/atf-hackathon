@@ -11,6 +11,7 @@ export function Methods() {
         <li><strong>Resident reports</strong> are submitted on this platform and may be unverified.</li>
         <li><strong>Status changes</strong> are either <em>user-reported</em> (proposed by residents with evidence and approved by moderators) or <em>municipality confirmed</em> (recorded by a verified municipal account or an official integration).</li>
         <li><strong>Election results</strong> come from the Electoral Commission of South Africa (IEC) where verified. They are a historical record, not a description of who governs today.</li>
+        <li><strong>Registered political parties</strong> are real data: the IEC register of parties (name, abbreviation, registration level, contact details and logo), scraped from elections.org.za and served by our IEC party API. Each view shows the scrape date. Registration says who may contest; it carries no votes, seats or performance. See <Link to="/parties">Parties</Link>.</li>
         <li><strong>Council composition</strong> is a dated snapshot from official council records. Current control is never inferred from historical results.</li>
       </ul>
 
