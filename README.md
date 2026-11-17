@@ -6,6 +6,12 @@ Residents report municipal service problems (water, electricity, roads, sanitati
 
 Pilot area: City of Cape Town. **Prolems seed data is illustrative sample data.**
 
+
+## To minimize tokens
+ Built a spec and worked on the spec document to improve it
+ Built the app after specs were done
+ Compacted the context to reduce tokens
+
 ## Quick start
 
 ```bash
