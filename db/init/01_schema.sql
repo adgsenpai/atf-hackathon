@@ -9,16 +9,44 @@ CREATE TABLE municipalities (
   kind          text NOT NULL,                -- e.g. Metropolitan municipality
   is_pilot      boolean NOT NULL DEFAULT false,
   wards_note    text,
-  integration   boolean NOT NULL DEFAULT false -- official "send to municipality" integration available
+  integration   boolean NOT NULL DEFAULT false, -- official "send to municipality" integration available
+  -- Real data (MDB / National Treasury). category: A metro, B local, C district.
+  code           text UNIQUE,
+  category       char(1),
+  district_code  text,
+  phone          text,
+  website        text,
+  street_address text,
+  postal_address text,
+  ward_count     int,
+  geom           geometry(MultiPolygon, 4326)
+);
+CREATE INDEX municipalities_geom_idx ON municipalities USING gist (geom);
+
+-- Province outline(s) for the map (MDB via OpenUp MapIt).
+CREATE TABLE regions (
+  code  text PRIMARY KEY,
+  name  text NOT NULL,
+  geom  geometry(MultiPolygon, 4326) NOT NULL
+);
+
+-- Provenance of every real dataset loaded at boot.
+CREATE TABLE data_imports (
+  dataset     text PRIMARY KEY,
+  source      text NOT NULL,
+  url         text,
+  fetched_at  timestamptz,
+  detail      jsonb
 );
 
 CREATE TABLE wards (
   id              serial PRIMARY KEY,
   municipality_id int NOT NULL REFERENCES municipalities(id),
-  code            text NOT NULL,
-  name            text NOT NULL,
-  suburb          text NOT NULL,
-  geom            geometry(Polygon, 4326) NOT NULL
+  code            text NOT NULL,         -- MDB ward code, e.g. 19100001
+  ward_no         int,
+  name            text NOT NULL,         -- e.g. "Ward 1"
+  suburb          text,                  -- not in the MDB data; left empty rather than guessed
+  geom            geometry(MultiPolygon, 4326) NOT NULL
 );
 CREATE INDEX wards_geom_idx ON wards USING gist (geom);
 
@@ -68,7 +96,15 @@ CREATE TABLE elections (
   municipality_id int NOT NULL REFERENCES municipalities(id),
   year            int NOT NULL,
   level           text NOT NULL,
-  is_sample       boolean NOT NULL DEFAULT true
+  is_sample       boolean NOT NULL DEFAULT true,
+  title             text,
+  total_valid_votes int,
+  seats_total       int,
+  quota             int,
+  independents      int NOT NULL DEFAULT 0,  -- independent ward councillors elected
+  district_40pct    boolean NOT NULL DEFAULT false, -- district: only the directly elected 40% is calculated here
+  report_url        text,
+  printed_on        text
 );
 
 CREATE TABLE election_results (

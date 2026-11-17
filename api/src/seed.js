@@ -1,4 +1,6 @@
-// Seeds illustrative SAMPLE data on first boot (when there are no users).
+// Seeds DEMO activity (users, reports, comments, moderation) on first boot when there are no users.
+// Reference data (municipalities, wards, results, council) is real and loaded by realdata.js first.
+// Demo reports are placed at points in the City of Cape Town and assigned to the real ward by PostGIS.
 import { one, tx } from './db.js';
 import { hashPassword } from './auth.js';
 
@@ -32,7 +34,7 @@ const WARD_BOXES = [ // [latTop, lngLeft] for each 0.04-degree sample ward S01..
 export async function seedIfEmpty() {
   const existing = await one('SELECT count(*) FROM users');
   if (existing.count > 0) return;
-  console.log('Seeding sample data...');
+  console.log('Seeding demo activity...');
   const pw = hashPassword('civicwatch');
   const now = Date.now();
 
@@ -43,7 +45,8 @@ export async function seedIfEmpty() {
       [email, pw, pseudonym, role, extra.municipality_id ?? null, !!extra.verified, extra.created_at ?? new Date(now - 200 * DAY)]);
 
     const resident = await user('resident@example.org', 'Resident 482', 'resident');
-    const official = await user('official@example.org', 'City of Cape Town representative (sample)', 'official', { municipality_id: 1, verified: true });
+    const cpt = await t.one("SELECT id FROM municipalities WHERE code='CPT'");
+    const official = await user('official@example.org', 'City of Cape Town representative (demo account)', 'official', { municipality_id: cpt.id, verified: true });
     const moderator = await user('moderator@example.org', 'Moderator 1', 'moderator');
     await user('admin@example.org', 'Senior moderator', 'admin');
     const r107 = await user('resident107@sample.invalid', 'Resident 107', 'resident');
@@ -51,16 +54,16 @@ export async function seedIfEmpty() {
     const crowd = [];
     for (let i = 0; i < 40; i++) crowd.push(await user(`resident${500 + i}@sample.invalid`, `Resident ${500 + i}`, 'resident'));
 
-    const wards = await t.q('SELECT id, code FROM wards ORDER BY code');
-
     async function report({ author, category, title, description, street, ward, observed, created, sensitive = false, lat, lng }) {
       const box = WARD_BOXES[ward];
       const la = lat ?? box[0] - 0.005 - rand() * 0.03;
       const ln = lng ?? box[1] + 0.005 + rand() * 0.03;
+      const geo = await t.one(
+        `SELECT (SELECT id FROM wards w WHERE ST_Contains(w.geom, ST_SetSRID(ST_Point($2,$1),4326)) LIMIT 1) AS ward_id`, [la, ln]);
       return t.one(
         `INSERT INTO reports (author_id, municipality_id, ward_id, category, title, description, street, lat, lng, sensitive, observed_on, created_at, is_sample)
-         VALUES ($1,1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,true) RETURNING *`,
-        [author.id, wards[ward].id, category, title, description, street, la, ln, sensitive, observed, created]);
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,true) RETURNING *`,
+        [author.id, cpt.id, geo.ward_id, category, title, description, street, la, ln, sensitive, observed, created]);
     }
     async function event(rep, status, source, by, kind, at, extra = {}) {
       await t.q(
@@ -91,7 +94,7 @@ export async function seedIfEmpty() {
     await event(pothole, 'acknowledged', 'user_reported', r107, 'community', d('2026-11-13T10:02:00+02:00'),
       { note: 'Received an automated reply from the call centre with a reference number.', evidence: 'Screenshot attached.' });
     await event(pothole, 'in_progress', 'official', official, 'official', d('2026-11-15T14:30:00+02:00'),
-      { reference: 'REF-SAMPLE', note: 'Source: official response, reference [REF-SAMPLE], checked 15 Nov 2026.' });
+      { reference: 'DEMO-1001', note: 'Demo official update: crew scheduled. Reference DEMO-1001.' });
     await t.q(`INSERT INTO report_photos (report_id, user_id, path, kind, created_at) VALUES
       ($1,$2,NULL,'author','2026-11-12T08:20:00+02:00'), ($1,$3,NULL,'community','2026-11-13T09:00:00+02:00'), ($1,$4,NULL,'community','2026-11-15T07:30:00+02:00')`,
       [pothole.id, resident.id, r107.id, crowd[0].id]);
@@ -100,13 +103,13 @@ export async function seedIfEmpty() {
     const c1 = await comment(pothole, resident, 'Confirmed. It is getting wider. A tyre was damaged on Tuesday.', d('2026-11-13T12:00:00+02:00'));
     for (const u of crowd.slice(0, 6)) await t.q('INSERT INTO comment_votes VALUES ($1,$2)', [u.id, c1.id]);
     await comment(pothole, r107, 'Added a photo of the other lane. The edge of the surface is breaking away.', d('2026-11-14T08:00:00+02:00'), { parent_id: c1.id });
-    const removed = await comment(pothole, resident,'[Removed sample comment containing an unsupported accusation.]', d('2026-11-14T10:00:00+02:00'),
+    const removed = await comment(pothole, resident,'Demo comment that named a person and accused them without a source.', d('2026-11-14T10:00:00+02:00'),
       { state: 'removed', removed_rule: 'Unsupported personal accusation' });
     await t.q(`INSERT INTO moderation_actions (moderator_id, target_type, target_id, action, reason_code, note, before, after, created_at)
                VALUES ($1,'comment',$2,'remove','personal_accusation','Comment named a person without a source.',$3,$4,'2026-11-14T11:00:00+02:00')`,
       [moderator.id, removed.id, JSON.stringify({ ...removed, state: 'visible', removed_rule: null }), JSON.stringify(removed)]);
-    await comment(pothole, official, 'Sample official reply: [text of official reply goes here]. Posted 15 Nov 2026.', d('2026-11-15T15:00:00+02:00'), { official: true });
-    const accusation = await comment(pothole, r219, '[Sample comment text naming a person and accusing them of corruption without a source.]', d('2026-11-15T09:40:00+02:00'));
+    await comment(pothole, official, 'Demo official reply: thank you, a road crew has been scheduled to repair this section of Protea Road.', d('2026-11-15T15:00:00+02:00'), { official: true });
+    const accusation = await comment(pothole, r219, 'Demo comment: names a person and accuses them of corruption without any source.', d('2026-11-15T09:40:00+02:00'));
     await flag('comment', accusation.id, crowd[1], 'personal_accusation', new Date(now - 2 * 3600e3));
     await flag('comment', accusation.id, crowd[2], 'personal_accusation', new Date(now - 2 * 3600e3));
     await flag('comment', accusation.id, crowd[4], 'harassment', new Date(now - 1.5 * 3600e3));
@@ -125,13 +128,13 @@ export async function seedIfEmpty() {
       observed: '2026-11-03', created: d('2026-11-03T07:30:00+02:00'),
     });
     await event(leak, 'submitted', 'user_reported', crowd[6], 'author', d('2026-11-03T07:30:00+02:00'));
-    await event(leak, 'acknowledged', 'official', official, 'official', d('2026-11-04T09:00:00+02:00'), { reference: 'REF-SAMPLE-2' });
-    await event(leak, 'resolved', 'official', official, 'official', d('2026-11-07T16:00:00+02:00'), { note: 'Sample: pipe repaired.' });
+    await event(leak, 'acknowledged', 'official', official, 'official', d('2026-11-04T09:00:00+02:00'), { reference: 'DEMO-1002' });
+    await event(leak, 'resolved', 'official', official, 'official', d('2026-11-07T16:00:00+02:00'), { note: 'Demo: pipe repaired.' });
     await event(leak, 'reopened', 'user_reported', crowd[7], 'community', d('2026-11-10T08:00:00+02:00'),
       { note: 'Leak has started again at the same spot.', evidence: 'Photo update attached.' });
     await follow(leak, 31);
     await comment(leak, crowd[7], 'Water is running again this morning, same spot as before.', d('2026-11-10T08:05:00+02:00'));
-    await comment(leak, official, 'Sample official reply: a team has been asked to re-inspect. [text to be confirmed]', d('2026-11-10T14:00:00+02:00'), { official: true });
+    await comment(leak, official, 'Demo official reply: a team has been asked to re-inspect the pipe.', d('2026-11-10T14:00:00+02:00'), { official: true });
 
     const bins = await report({
       author: crowd[8], category: 'waste', title: 'Bins not collected for two weeks on Sample Crescent', street: 'Sample Crescent', ward: 3,
@@ -172,7 +175,7 @@ export async function seedIfEmpty() {
       const street = pick(STREETS);
       const rep = await report({
         author, category, ward, street, title: `${pick(TEMPLATES[category])}, ${street}`,
-        description: 'Sample report generated for the pilot demo. Details are illustrative only.',
+        description: 'Demo report generated for the CivicWatch demo. Details are illustrative only.',
         observed: new Date(created.getTime() - Math.floor(rand() * 2) * DAY).toISOString().slice(0, 10), created,
         sensitive: rand() < 0.06,
       });
@@ -183,7 +186,7 @@ export async function seedIfEmpty() {
         const officialAck = rand() < 0.45;
         at += (0.3 + rand() * 6) * DAY;
         if (at < now) await event(rep, 'acknowledged', officialAck ? 'official' : 'user_reported', officialAck ? official : pick(crowd), officialAck ? 'official' : 'community', new Date(at),
-          officialAck ? { reference: 'REF-SAMPLE' } : { note: 'Call centre reference received.', evidence: 'Screenshot.' });
+          officialAck ? { reference: 'DEMO-REF' } : { note: 'Call centre reference received.', evidence: 'Screenshot.' });
         if (roll > 0.45 && at < now) {
           at += (1 + rand() * 10) * DAY;
           const offRes = rand() < 0.5;
@@ -212,10 +215,10 @@ export async function seedIfEmpty() {
 
     await event(light, 'resolved', 'user_reported', crowd[18], 'community', new Date(now - 8 * 3600e3), { note: 'Looks fixed now.', state: 'pending' });
 
-    const spam = await comment(leak, crowd[19], 'Cheap plumbing services, visit [sample-spam-link]', new Date(now - 26 * 3600e3));
+    const spam = await comment(leak, crowd[19], 'Cheap plumbing services, visit spam.example.invalid', new Date(now - 26 * 3600e3));
     for (const u of crowd.slice(20, 24)) await flag('comment', spam.id, u, 'spam', new Date(now - 24 * 3600e3));
 
     await t.q(`INSERT INTO corrections (target_type, target_id, user_id, details) VALUES ('responsibility', 2, $1, 'In parts of the city electricity is supplied directly by Eskom, not the municipality. Please verify per area.')`, [crowd[25].id]);
   });
-  console.log('Sample data seeded.');
+  console.log('Demo activity seeded.');
 }

@@ -32,7 +32,7 @@ const admin = await login('admin@example.org');
 ok(resident && official && moderator && admin, 'demo accounts can sign in');
 
 const geo = await api('/api/geo/lookup?lat=-33.95&lng=18.46');
-ok(geo.data.ward === 'Ward S01 (sample)', 'PostGIS ward lookup inside boundary');
+ok(/^Ward \d+$/.test(geo.data.ward) && geo.data.municipality === 'City of Cape Town', 'PostGIS ward lookup inside real boundary');
 const geoOut = await api('/api/geo/lookup?lat=-33.5&lng=18.0');
 ok(geoOut.data.ward === null, 'ward lookup outside boundary returns not found');
 
@@ -40,7 +40,7 @@ const pii = await api('/api/reports', { token: resident, method: 'POST', body: {
 ok(pii.status === 400, 'phone numbers rejected in description');
 
 const created = await api('/api/reports', { token: resident, method: 'POST', body: { category: 'roads', title: 'Smoke test pothole', description: 'A smoke-test report describing a pothole.', street: 'Test Street', lat: -33.95, lng: 18.46, observed_on: '2026-11-10' } });
-ok(created.status === 201 && created.data.ward === 'Ward S01 (sample)', 'resident creates report with ward from pin');
+ok(created.status === 201 && created.data.ward === geo.data.ward, 'resident creates report with ward from pin');
 const id = created.data.id;
 
 // photo with EXIF: minimal JPEG with an APP1 Exif segment

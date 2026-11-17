@@ -3,6 +3,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --omit=dev || npm install --omit=dev
 COPY src ./src
+COPY data/real ./data/real
 ENV NODE_ENV=production PORT=4000 UPLOAD_DIR=/data/uploads
 RUN mkdir -p /data/uploads && chown -R node:node /data
 USER node

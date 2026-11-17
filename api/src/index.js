@@ -7,6 +7,7 @@ import muniRoutes from './routes/municipalities.js';
 import modRoutes from './routes/moderation.js';
 import partyRoutes from './routes/parties.js';
 import { seedIfEmpty } from './seed.js';
+import { loadRealDataIfEmpty } from './realdata.js';
 
 const app = express();
 app.disable('x-powered-by');
@@ -34,5 +35,6 @@ app.use((err, _req, res, _next) => {
 
 const port = Number(process.env.PORT) || 4000;
 await waitForDb();
+await loadRealDataIfEmpty();
 await seedIfEmpty();
 app.listen(port, () => console.log(`CivicWatch API listening on :${port}`));
