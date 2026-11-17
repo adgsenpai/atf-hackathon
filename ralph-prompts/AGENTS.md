@@ -5,7 +5,7 @@
 - `api/` — Node 22 + Express REST API (`/api/*`), Postgres via `pg`
 - `web/` — React 18 + Vite SPA with Leaflet map; built into nginx which proxies `/api` and `/uploads`
 - `docker-compose.yml` — `db` (PostGIS), `api`, `web`
-- `specs/` — product requirements; `IMPLEMENTATION_PLAN.md` — prioritized plan
+- `ralph-prompts/` — loop prompt (`PROMPT.md`), product requirements (`specs/`), prioritized plan (`IMPLEMENTATION_PLAN.md`), this file
 
 ## Run
     cp .env.example .env        # optional, defaults work
@@ -19,6 +19,9 @@ Reset the database (re-runs schema + seed): `docker compose down -v && docker co
 - official@example.org — verified municipality representative (City of Cape Town)
 - moderator@example.org — moderator
 - admin@example.org — admin (senior moderator)
+
+## Ralph loop
+Run from the repo root, e.g. `while :; do cat ralph-prompts/PROMPT.md | <agent-cli>; done`
 
 ## Test
     make test        # API smoke tests against the running stack (scripts/smoke.sh)

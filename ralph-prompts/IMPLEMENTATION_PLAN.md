@@ -2,6 +2,12 @@
 
 Priority order. Tick only when done and verified by `make test`.
 
+**Status: MVP (P0–P3) complete ✅ — 30/30 smoke checks passing. Next iteration starts at the Backlog.**
+
+## P0b — Repo layout
+- [x] Ralph files live in `ralph-prompts/` (PROMPT.md, specs/, IMPLEMENTATION_PLAN.md, AGENTS.md)
+- [x] Project code at repo root (`api/`, `web/`, `db/`, `docker-compose.yml`)
+
 ## P0 — Platform
 - [x] docker-compose with PostGIS db, API, web (nginx) + healthchecks
 - [x] Schema: users, municipalities, wards (polygons), categories, reports, photos, status_events, follows, same_problem, comments, comment_votes, flags, moderation_actions (audit), appeals, corrections, sources, responsibilities, election_results, council_seats, council_changes

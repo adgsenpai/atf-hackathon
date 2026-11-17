@@ -41,10 +41,12 @@ Reset the database: `make reset`.
 
 This repo is set up for iterative autonomous development using the Ralph loop pattern:
 
-- `PROMPT.md`: the loop prompt (one task per iteration, plus guardrails)
-- `specs/`: product requirements, one file per screen or topic
-- `IMPLEMENTATION_PLAN.md`: prioritized checklist (MVP done; backlog next)
-- `AGENTS.md`: build, run and test notes for the agent
+All Ralph files live in [`ralph-prompts/`](ralph-prompts/):
+
+- [x] `ralph-prompts/PROMPT.md`: the loop prompt (one task per iteration, plus guardrails)
+- [x] `ralph-prompts/specs/`: product requirements, one file per screen or topic
+- [x] `ralph-prompts/IMPLEMENTATION_PLAN.md`: prioritized checklist (MVP done ✅; backlog next)
+- [x] `ralph-prompts/AGENTS.md`: build, run and test notes for the agent
 
 ## Local development without Docker for app code
 

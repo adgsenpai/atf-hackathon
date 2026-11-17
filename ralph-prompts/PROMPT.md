@@ -2,16 +2,16 @@
 
 You are working in a loop. Each iteration does ONE thing well, then exits.
 
-0a. Study `specs/*` to learn the product requirements (one file per topic).
-0b. Study `IMPLEMENTATION_PLAN.md` to see what is done and what is next.
-0c. Study `AGENTS.md` for how to build, run and test. Source lives in `api/` and `web/`; the schema lives in `db/`.
+0a. Study `ralph-prompts/specs/*` to learn the product requirements (one file per topic).
+0b. Study `ralph-prompts/IMPLEMENTATION_PLAN.md` to see what is done and what is next.
+0c. Study `ralph-prompts/AGENTS.md` for how to build, run and test. Paths are relative to the repo root. Source lives in `api/` and `web/`; the schema lives in `db/`.
 
-1. Pick the single most important unchecked item in `IMPLEMENTATION_PLAN.md`.
+1. Pick the single most important unchecked item in `ralph-prompts/IMPLEMENTATION_PLAN.md`.
    Before changing anything, search the code — do not assume something is not implemented.
 2. Implement it completely. No placeholders, no stubs, no "TODO later".
-3. Run the checks in `AGENTS.md` (`make test`). If they fail, fix them before moving on.
-4. Update `IMPLEMENTATION_PLAN.md`: tick the item, add anything you discovered (bugs, missing spec detail) as new items.
-5. If you learned something about how to build/run the project, add it to `AGENTS.md` (short, operational).
+3. Run the checks in `ralph-prompts/AGENTS.md` (`make test`). If they fail, fix them before moving on.
+4. Update `ralph-prompts/IMPLEMENTATION_PLAN.md`: tick the item, add anything you discovered (bugs, missing spec detail) as new items.
+5. If you learned something about how to build/run the project, add it to `ralph-prompts/AGENTS.md` (short, operational).
 6. Commit with a descriptive message. Then stop.
 
 ## Guardrails (never violate)
