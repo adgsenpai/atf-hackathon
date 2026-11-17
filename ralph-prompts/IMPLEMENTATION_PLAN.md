@@ -2,7 +2,7 @@
 
 Priority order. Tick only when done and verified by `make test`.
 
-**Status: MVP (P0–P3) and P4 (real IEC party data) complete ✅ — all smoke checks passing. Next iteration starts at the Backlog.**
+**Status: P0–P4 complete ✅. Current focus: P5 — real Western Cape data.**
 
 ## P0b — Repo layout
 - [x] Ralph files live in `ralph-prompts/` (PROMPT.md, specs/, IMPLEMENTATION_PLAN.md, AGENTS.md)
@@ -37,6 +37,15 @@ Source: `iec-api` (Rust) serves the real IEC party registry scraped from electio
 - [x] Election results + council tabs: show the IEC logo next to a party when its name matches a registry entry; keep sample rows clearly labelled sample. Update pilot bar / Methods page to say party registry data is real (IEC) while reports/results remain sample.
 - [x] Party detail `/parties/:id` page (all registry fields, logo, IEC source link).
 - [x] Bug found: `.page` reset `.container` side padding, so pages touched the screen edge below ~1220px. Fixed.
+
+## P5 — Real Western Cape data (replace every placeholder)
+Scope: Western Cape only (1 metro, 5 districts, 24 locals, 406 wards). Fetch: `scripts/data/fetch_real_data.py --province WC` → `api/data/real/`. Never invent numbers; anything not in a source is shown as "Not recorded" with the reason.
+- [x] Fetch script + data: MDB boundaries (OpenUp MapIt, 2021 electoral boundaries), National Treasury contacts, IEC 2026 + 2021 seat calculations (all 30 councils; seat sums validated)
+- [ ] Schema + loader: real municipalities (code, category, district, contacts, geometry), 406 real wards, responsibilities from law + Treasury channels, elections 2026/2021 and council-as-elected 2026 from IEC; drop all sample reference rows; demo reports re-assigned to real wards by PostGIS
+- [ ] API: municipalities list with category/district + report counts; GeoJSON endpoints for province, municipalities, wards (per municipality); elections/council expose IEC metadata (quota, seats, independents, district 40%)
+- [ ] Web: map painted with real municipal areas (fill by district, never by party), ward outlines when zoomed in, click → municipality; municipality page map; list grouped by district
+- [ ] Web: replace placeholder copy (responsibility block, council arrangement, pilot bar, Methods) with real sources and dates
+- [ ] Smoke tests updated for real data (30 councils, 406 wards, CPT 235 seats in 2026, no "[...]" placeholders in any API response)
 
 ## Backlog (next iterations)
 - [ ] Real 2021 LGE results + current council for Cape Town from the IEC results API (needs an API key); the registry matcher will then link rows automatically
