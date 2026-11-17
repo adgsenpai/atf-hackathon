@@ -4,7 +4,8 @@
 - `db/init/*.sql` — PostGIS schema + seed (runs on first boot of the db volume)
 - `api/` — Node 22 + Express REST API (`/api/*`), Postgres via `pg`
 - `web/` — React 18 + Vite SPA with Leaflet map; built into nginx which proxies `/api` and `/uploads`
-- `docker-compose.yml` — `db` (PostGIS), `api`, `web`
+- `iec-api/` — Rust (axum) API serving IEC-registered parties + logos from `iec-api/data/` (scraper included)
+- `docker-compose.yml` — `db` (PostGIS), `api`, `iec-api`, `web` (+ `iec-scrape` profile)
 - `ralph-prompts/` — loop prompt (`PROMPT.md`), product requirements (`specs/`), prioritized plan (`IMPLEMENTATION_PLAN.md`), this file
 
 ## Run
@@ -27,5 +28,6 @@ Run from the repo root, e.g. `while :; do cat ralph-prompts/PROMPT.md | <agent-c
     make test        # API smoke tests against the running stack (scripts/smoke.sh)
 
 ## Gotchas
-- Host port 5432 is often taken; db is published on 5433.
+- Host port 5432 is often taken; db is published on 5433. iec-api is published on 8081 (8080 often taken).
+- Re-scrape IEC data: `docker compose run --rm iec-scrape && docker compose restart iec-api`.
 - Changing `db/init` requires `docker compose down -v` to take effect.

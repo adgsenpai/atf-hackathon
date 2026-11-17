@@ -98,5 +98,10 @@ ok(!JSON.stringify(perf.data).toLowerCase().includes('score'), 'no score in perf
 const csv = await api('/api/municipalities/city-of-cape-town/performance.csv', { raw: true });
 ok(csv.status === 200 && csv.data.includes('ref,category,ward'), 'CSV export');
 
+const iecHealth = await fetch(BASE + '/iec/health').then((r) => r.text()).catch(() => '');
+ok(iecHealth.trim() === 'ok', 'Rust IEC API reachable through nginx');
+const parties = await api('/iec/api/parties?limit=3');
+ok(parties.status === 200, 'IEC parties list');
+
 console.log(failures ? `\n${failures} check(s) failed` : '\nAll checks passed');
 process.exit(failures ? 1 : 0);

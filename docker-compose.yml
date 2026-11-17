@@ -1,5 +1,12 @@
 name: civicwatch
 
+# Full CivicWatch Africa stack:
+#   db          PostgreSQL 16 + PostGIS   (host :5433)
+#   api         Node/Express civic API    (internal :4000, via web at /api)
+#   iec-api     Rust/axum IEC party API   (host :8081, via web at /iec)
+#   web         React SPA + nginx proxy   (host :8088)
+#   iec-scrape  one-off re-scrape:  docker compose run --rm iec-scrape
+
 services:
   db:
     image: postgis/postgis:16-3.4-alpine
@@ -32,6 +39,28 @@ services:
       db:
         condition: service_healthy
 
+  iec-api:
+    build: ./iec-api
+    image: iec-api:latest
+    restart: unless-stopped
+    ports:
+      - "${IEC_PORT:-8081}:8080"
+    environment:
+      RUST_LOG: info
+      # Set to enable POST /api/refresh (re-scrape). Leave empty to disable.
+      REFRESH_TOKEN: ${REFRESH_TOKEN:-}
+    volumes:
+      # parties.json + logos/ ; re-scrapes write back here.
+      - ./iec-api/data:/app/data
+
+  # One-off re-scrape: docker compose run --rm iec-scrape
+  iec-scrape:
+    image: iec-api:latest
+    profiles: ["scrape"]
+    command: ["scrape"]
+    volumes:
+      - ./iec-api/data:/app/data
+
   web:
     build: ./web
     restart: unless-stopped
@@ -39,6 +68,8 @@ services:
       - "${WEB_PORT:-8088}:80"
     depends_on:
       api:
+        condition: service_healthy
+      iec-api:
         condition: service_healthy
 
 volumes:

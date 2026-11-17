@@ -12,7 +12,7 @@ Pilot area: City of Cape Town. **All seed data is illustrative sample data.**
 cp .env.example .env          # optional
 docker compose up --build -d
 open http://localhost:8088
-make test                     # API smoke tests (29 checks)
+make test                     # smoke tests across the whole stack
 ```
 
 Demo accounts (password `civicwatch`): `resident@example.org`, `official@example.org` (verified municipality rep), `moderator@example.org`, `admin@example.org`. The sign-in page has one-click buttons for each.
@@ -25,7 +25,8 @@ Reset the database: `make reset`.
 |---|---|---|
 | `db` | PostgreSQL 16 + PostGIS 3.4 | Schema and reference data in `db/init/`. Ward lookup uses `ST_Contains`. Audit log is append-only (trigger). |
 | `api` | Node 22, Express 5, `pg` | REST under `/api`. JWT auth, scrypt passwords, metadata stripping for photo uploads (JPEG/PNG), seeds sample data on first boot. |
-| `web` | React 18, Vite, Leaflet, nginx | SPA; nginx proxies `/api` and `/uploads` to the API. |
+| `iec-api` | Rust, axum | Registered political parties + logos scraped from the IEC ([`iec-api/README.md`](iec-api/README.md)). Host :8081, and via nginx at `/iec/` (e.g. `/iec/api/parties`). Re-scrape: `docker compose run --rm iec-scrape`. |
+| `web` | React 18, Vite, Leaflet, nginx | SPA; nginx proxies `/api` and `/uploads` to the API and `/iec/` to the IEC API. |
 
 ## Features (mapped to the UI mockups)
 
