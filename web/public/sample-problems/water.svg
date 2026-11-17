@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 450">
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#dcebe8"/><stop offset="1" stop-color="#f6e8cd"/></linearGradient>
+  </defs>
+  <rect width="800" height="450" fill="url(#sky)"/>
+  <path d="M0 230 142 122l103 79 127-108 155 139 110-88 163 104v81H0Z" fill="#9bb5ad"/>
+  <path d="M0 279h800v53H0z" fill="#d4c6a9"/>
+  <path d="M0 330h800v120H0z" fill="#66736d"/>
+  <path d="M0 330h800" stroke="#eee4d0" stroke-width="9"/>
+  <path d="M135 330v-41q0-30 33-30h96q33 0 33 30v41" fill="none" stroke="#6d7770" stroke-width="28"/>
+  <path d="M131 289h47m71 0h53" stroke="#b9c8bd" stroke-width="5"/>
+  <path d="M210 265v-56q0-18 18-18h37" fill="none" stroke="#66736d" stroke-width="20" stroke-linecap="round"/>
+  <path d="M263 190q16 0 16 15" fill="none" stroke="#66736d" stroke-width="20" stroke-linecap="round"/>
+  <path d="M278 204c-3 24 7 28 0 45m0 7c-4 18 7 24 0 41" fill="none" stroke="#4aa5b2" stroke-width="12" stroke-linecap="round"/>
+  <path d="M266 299q57 16 107 3-13 28-57 29-34-2-50-14Z" fill="#88c6ca"/>
+  <path d="M312 330h215" stroke="#c3d6cc" stroke-width="4" stroke-dasharray="26 15" opacity=".8"/>
+  <path d="m220 317 16-12 12 9m-17 13 16-12 11 8" fill="none" stroke="#e1b06b" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="650" cy="252" r="35" fill="#759672"/>
+  <path d="M650 275v47" stroke="#79593e" stroke-width="14"/>
+</svg>
