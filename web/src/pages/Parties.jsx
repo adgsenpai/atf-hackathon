@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { api, fmtDateTime, qs } from '../api.js';
 import { Notice } from '../components.jsx';
 
@@ -118,6 +118,49 @@ export default function Parties() {
         </>
       )}
       {!data && !error && <p className="muted">Loading the IEC register…</p>}
+    </div>
+  );
+}
+
+export function PartyDetail() {
+  const { id } = useParams();
+  const [p, setP] = useState(null);
+  const [error, setError] = useState('');
+  useEffect(() => {
+    setP(null); setError('');
+    api(`/parties/${encodeURIComponent(id)}`).then(setP).catch((e) => setError(e.status === 404 ? 'This party is not in the IEC register.' : e.message));
+  }, [id]);
+
+  if (error) return <div className="container page"><div className="crumbs"><Link to="/parties">Parties</Link></div><Notice kind="warn">{error}</Notice></div>;
+  if (!p) return <div className="container page muted">Loading…</div>;
+  const web = p.website && (/^https?:\/\//i.test(p.website) ? p.website : `https://${p.website}`);
+  return (
+    <div className="container page">
+      <div className="crumbs"><Link to="/parties">Parties</Link> / {p.name}</div>
+      <div className="row" style={{ gap: 16, alignItems: 'center', margin: '8px 0 16px' }}>
+        <PartyLogo party={p} size={96} />
+        <div style={{ minWidth: 0 }}>
+          <h1 style={{ margin: 0, overflowWrap: 'anywhere' }}>{p.name}</h1>
+          <div className="muted">{p.abbreviation || 'No abbreviation registered'}</div>
+          <div className="badges" style={{ marginTop: 6 }}>{p.levels.map((l) => <Link key={l} to={`/parties?level=${l}`} className="badge">{l} level</Link>)}</div>
+        </div>
+      </div>
+      <section className="card">
+        <h2>Registration details</h2>
+        <p className="small muted">As published in the IEC register of political parties. Contact details are those the party gave the IEC.</p>
+        <dl className="party-kv">
+          <dt>Registered name</dt><dd>{p.display_name}</dd>
+          <dt>Registration level</dt><dd>{p.levels.join(', ') || '—'}</dd>
+          <dt>Contact person</dt><dd>{p.contact_person || '—'}</dd>
+          <dt>Telephone</dt><dd>{p.telephone ? <a href={`tel:${p.telephone.replace(/[^\d+]/g, '')}`}>{p.telephone}</a> : '—'}</dd>
+          <dt>Email</dt><dd>{p.email ? <a href={`mailto:${p.email}`}>{p.email}</a> : '—'}</dd>
+          <dt>Address</dt><dd>{p.address || '—'}</dd>
+          <dt>Website</dt><dd>{web ? <a href={web} target="_blank" rel="noreferrer nofollow">{p.website}</a> : '—'}</dd>
+          <dt>Logo source</dt><dd>{p.source_logo_url ? <a href={p.source_logo_url} target="_blank" rel="noreferrer">elections.org.za</a> : 'No logo on file'}</dd>
+        </dl>
+        <Notice>Registration means a party may contest elections at this level. It says nothing about votes won, seats held or performance.</Notice>
+        <RegistrySource source={p.source} />
+      </section>
     </div>
   );
 }

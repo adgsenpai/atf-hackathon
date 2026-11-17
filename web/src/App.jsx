@@ -9,7 +9,7 @@ import Municipality from './pages/Municipality.jsx';
 import Performance from './pages/Performance.jsx';
 import Moderation from './pages/Moderation.jsx';
 import SignIn from './pages/SignIn.jsx';
-import Parties from './pages/Parties.jsx';
+import Parties, { PartyDetail } from './pages/Parties.jsx';
 import { Methods, Rules, NotFound } from './pages/Static.jsx';
 
 function Header() {
@@ -74,6 +74,7 @@ export default function App() {
           <Route path="/municipalities/:slug" element={<Municipality />} />
           <Route path="/municipalities/:slug/performance" element={<Performance />} />
           <Route path="/parties" element={<Parties />} />
+          <Route path="/parties/:id" element={<PartyDetail />} />
           <Route path="/moderation/*" element={<Moderation />} />
           <Route path="/signin" element={<SignIn />} />
           <Route path="/methods" element={<Methods />} />

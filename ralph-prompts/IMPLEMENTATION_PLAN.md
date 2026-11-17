@@ -35,7 +35,8 @@ Source: `iec-api` (Rust) serves the real IEC party registry scraped from electio
 - [x] Web: `/parties` directory page — search, level filter, has-logo filter, paging, logo + name + abbreviation + levels + contact/website; shows source URL and scraped-at date ("Source: Electoral Commission of South Africa (IEC) · last scraped …"). Nav link. Parties are never colour-coded.
 - [x] Web: Municipality page "Registered parties" tab — Metro-level IEC parties (metro municipality) with logos, plus link to full directory; source + scrape date shown. Kept separate from Election results / Current council.
 - [ ] Election results + council tabs: show the IEC logo next to a party when its name matches a registry entry; keep sample rows clearly labelled sample. Update pilot bar / Methods page to say party registry data is real (IEC) while reports/results remain sample.
-- [ ] Party detail `/parties/:id` page (all registry fields, logo, IEC source link).
+- [x] Party detail `/parties/:id` page (all registry fields, logo, IEC source link).
+- [x] Bug found: `.page` reset `.container` side padding, so pages touched the screen edge below ~1220px. Fixed.
 
 ## Backlog (next iterations)
 - [ ] Email/push notifications to followers on status change

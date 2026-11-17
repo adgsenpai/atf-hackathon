@@ -123,5 +123,8 @@ ok(mParties.status === 200 && mParties.data.level === 'Metro' && mParties.data.i
 ok(mParties.data.items.some((x) => x.local_address) && mParties.data.note && mParties.data.source?.scraped_at, 'municipality parties flag local addresses and cite source');
 ok(mParties.data.items.every((x) => !('votes' in x) && !('seats' in x)), 'municipality party list has no votes/seats');
 
+const spa = await fetch(BASE + '/parties/democratic-alliance-da');
+ok(spa.status === 200 && (await spa.text()).includes('<div id="root">'), 'party detail route served by SPA');
+
 console.log(failures ? `\n${failures} check(s) failed` : '\nAll checks passed');
 process.exit(failures ? 1 : 0);
