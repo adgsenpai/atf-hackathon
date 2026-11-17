@@ -33,3 +33,5 @@ Run from the repo root, e.g. `while :; do cat ralph-prompts/PROMPT.md | <agent-c
 - Changing `db/init` requires `docker compose down -v` to take effect.
 - Test stack alongside a running dev stack: `WEB_PORT=8098 DB_PORT=5443 IEC_PORT=8091 docker compose -p cwreal up --build -d` then `BASE_URL=http://localhost:8098 make test`.
 - Party data: `api/src/routes/parties.js` proxies iec-api (`IEC_API_URL`, 60 s cache). `partyMatcher()` links result/council rows by exact name/abbreviation; anything containing 'sample' never matches.
+- Real data: `api/data/real/` is loaded by `api/src/realdata.js` on first boot (empty `municipalities`). Refresh with `python3 -m venv .venv && .venv/bin/pip install xlrd==2.0.1 && .venv/bin/python scripts/data/fetch_real_data.py --province WC`, then `docker compose down -v && docker compose up --build -d`.
+- Demo-only: `demo_ward_holders` (fictional parties) and all reports/comments. Never attach demo numbers to real parties.

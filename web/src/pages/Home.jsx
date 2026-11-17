@@ -43,9 +43,9 @@ export default function Home({ listOnly }) {
 
       <form className="stack" onSubmit={(e) => { e.preventDefault(); set('q', text.trim()); }}>
         <div>
-          <label className="field" htmlFor="search">Search by street, suburb, ward or keyword</label>
+          <label className="field" htmlFor="search">Search by street, ward, municipality or keyword</label>
           <div className="search">
-            <input id="search" className="input" placeholder="e.g. Protea Road, water leak" value={text} onChange={(e) => setText(e.target.value)} />
+            <input id="search" className="input" placeholder="e.g. Ward 57, water leak, George" value={text} onChange={(e) => setText(e.target.value)} />
             <button className="btn btn-primary" type="submit">Search</button>
           </div>
         </div>
@@ -103,7 +103,9 @@ export default function Home({ listOnly }) {
             <label htmlFor="f-ward">Ward</label>
             <select id="f-ward" className="input" value={filters.ward} onChange={(e) => set('ward', e.target.value)}>
               <option value="">All wards</option>
-              {wards.map((w) => <option key={w.id} value={w.id}>{w.name} · {w.suburb}</option>)}
+              {Object.entries(wards.reduce((a, w) => ((a[w.municipality] ||= []).push(w), a), {})).map(([mName, ws]) => (
+                <optgroup key={mName} label={mName}>{ws.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}</optgroup>
+              ))}
             </select>
           </div>
         </div>
@@ -124,8 +126,8 @@ export default function Home({ listOnly }) {
           )}
         </div>
         <div className="map-col">
-          <ReportsMap reports={mapItems} wards={wards} />
-          <p className="xs muted" style={{ marginTop: 6 }}>Numbered pins group nearby reports. Location precision can be reduced for sensitive reports. Ward boundaries shown are illustrative samples.</p>
+          <ReportsMap reports={mapItems} />
+          <p className="xs muted" style={{ marginTop: 6 }}>Numbered pins group nearby reports. Location precision can be reduced for sensitive reports. Ward and municipal boundaries are real (Municipal Demarcation Board); reports are demo activity.</p>
         </div>
       </div>
 

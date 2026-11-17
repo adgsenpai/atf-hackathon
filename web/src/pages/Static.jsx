@@ -10,9 +10,12 @@ export function Methods() {
       <ul>
         <li><strong>Resident reports</strong> are submitted on this platform and may be unverified.</li>
         <li><strong>Status changes</strong> are either <em>user-reported</em> (proposed by residents with evidence and approved by moderators) or <em>municipality confirmed</em> (recorded by a verified municipal account or an official integration).</li>
-        <li><strong>Election results</strong> come from the Electoral Commission of South Africa (IEC) where verified. They are a historical record, not a description of who governs today.</li>
+        <li><strong>Boundaries</strong> (the Western Cape, its 5 districts, 25 metro and local municipalities and 406 wards) are the Municipal Demarcation Board's 2021 electoral boundaries, served by OpenUp MapIt.</li>
+        <li><strong>Election results</strong> are the IEC Seat Calculation Detail reports for every council in the 2026 and 2021 Local Government Elections. "Total valid votes" combines ward and PR ballots, as the IEC seat calculation does. District councils show only the directly elected 40% of seats.</li>
+        <li><strong>Contacts</strong> (switchboard, website, address) come from the National Treasury municipal register. <strong>Who is responsible</strong> follows the Constitution (Schedules 4B and 5B) and the Municipal Structures Act (s84).</li>
+        <li><strong>Resident reports, comments and the ward accountability showcase</strong> are demo activity generated for this build. The showcase uses fictional parties only and gives every party identical odds.</li>
         <li><strong>Registered political parties</strong> are real data: the IEC register of parties (name, abbreviation, registration level, contact details and logo), scraped from elections.org.za and served by our IEC party API. Each view shows the scrape date. Registration says who may contest; it carries no votes, seats or performance. See <Link to="/parties">Parties</Link>.</li>
-        <li><strong>Council composition</strong> is a dated snapshot from official council records. Current control is never inferred from historical results.</li>
+        <li><strong>Council composition</strong> is the council as elected (IEC seat allocation). The governing arrangement and executive mayor are recorded only once a source confirms them; control is never inferred from results.</li>
       </ul>
 
       <h2>How we calculate</h2>

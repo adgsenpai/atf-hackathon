@@ -90,7 +90,7 @@ export async function loadRealDataIfEmpty() {
       const name = displayName(code, raw, category);
       return {
         code, category, name, short: raw, slug: code === 'CPT' ? 'city-of-cape-town' : slugify(name.replace(/ Local Municipality$/, '')),
-        district_code: category === 'B' ? c.parent_code : null, phone: c.phone, website: c.website,
+        district_code: category === "B" ? c.parent_code : null, phone: c.phone, website: c.url,
         street_address: c.street_address, postal_address: c.postal_address, province: c.province || 'Western Cape',
       };
     });

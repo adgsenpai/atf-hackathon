@@ -131,5 +131,36 @@ ok(elx.results.every((x) => 'registry' in x) && elx.results.filter((x) => /sampl
 const cx = (await api('/api/municipalities/city-of-cape-town/council')).data;
 ok(cx.seats.every((x) => 'registry' in x && (!/sample/i.test(x.party) || x.registry === null)), 'council rows carry registry link only for real names');
 
+// ---------- P5: real Western Cape data ----------
+const st = (await api('/api/stats')).data;
+ok(st.councils === 30 && st.municipalities === 25 && st.wards === 406, 'real WC data: 30 councils, 25 municipalities, 406 wards');
+ok(st.latest_election === 2026 && st.sources.length === 3, 'stats expose latest election and 3 data sources');
+const munis = (await api('/api/municipalities')).data;
+ok(munis.every((m) => m.code && m.kind && !('geom' in m)) && munis.filter((m) => m.category === 'C').length === 5, 'municipality list is real and geometry-free');
+const cptEl = (await api('/api/municipalities/city-of-cape-town/elections?year=2026')).data;
+ok(cptEl.election.seats_total === 235 && !cptEl.election.is_sample && cptEl.results.reduce((a, x) => a + x.seats, 0) === 235, 'CPT 2026: 235 seats from IEC, seats add up');
+ok(cptEl.results.some((x) => x.registry), 'real result rows link to the IEC party register');
+const dc = (await api('/api/municipalities/west-coast-district-municipality/elections')).data;
+ok(dc.election?.district_40pct === true, 'district council flagged as directly elected 40%');
+const gm = (await api('/api/geo/municipalities')).data;
+ok(gm.type === 'FeatureCollection' && gm.features.length === 25 && gm.features.every((f) => f.geometry), 'geo: 25 municipal areas with geometry');
+const gw = (await api('/api/geo/wards?municipality=city-of-cape-town')).data;
+ok(gw.features.length === 116, 'geo: 116 real Cape Town wards');
+const acc = (await api('/api/municipalities/city-of-cape-town/accountability')).data;
+const names = acc.items.map((x) => x.party);
+ok(acc.demo === true && acc.items.length === 5 && names.every((x) => x.endsWith('(demo)')) && names.join() === [...names].sort((a, b) => a.localeCompare(b)).join(), 'accountability: 5 fictional demo parties, alphabetical');
+ok(acc.items.every((x) => !('score' in x) && !('rank' in x)), 'accountability: no score or rank');
+const wardSpread = acc.items.map((x) => x.wards);
+ok(Math.max(...wardSpread) - Math.min(...wardSpread) <= 1, 'accountability: wards shared equally between demo parties');
+const resp = (await api('/api/municipalities/city-of-cape-town')).data;
+ok(resp.responsibilities.length >= 6 && resp.phone && resp.website, 'responsibilities and Treasury contacts loaded');
+let placeholders = 0;
+for (const u of ['/api/municipalities/city-of-cape-town', '/api/municipalities/city-of-cape-town/council', '/api/municipalities/city-of-cape-town/elections',
+  '/api/municipalities/city-of-cape-town/performance', '/api/reports?limit=500', '/api/municipalities/west-coast-district-municipality']) {
+  const t = await (await fetch(BASE + u)).text();
+  placeholders += (t.match(/\[(?:to |[A-Z][a-z]+[ ,\]]|[a-z]+ [a-z]+)[^\]"]{0,60}\]/g) || []).length;
+}
+ok(placeholders === 0, `no "[...]" placeholders in API responses (${placeholders} found)`);
+
 console.log(failures ? `\n${failures} check(s) failed` : '\nAll checks passed');
 process.exit(failures ? 1 : 0);

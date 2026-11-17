@@ -73,9 +73,14 @@ async function applyStatus(t, reportId, status, source) {
 // ---------- reference ----------
 r.get('/categories', async (_req, res) => res.json(await q('SELECT * FROM categories ORDER BY sort')));
 
-r.get('/wards', async (_req, res) =>
-  res.json(await q(`SELECT id, code, name, suburb, municipality_id,
-                    ST_AsGeoJSON(geom)::json AS geometry FROM wards ORDER BY code`)));
+// Ward list for filters (geometry is served by /api/geo/wards). Optional ?municipality=<slug>.
+r.get('/wards', async (req, res) => {
+  const params = [];
+  let where = '';
+  if (req.query.municipality) { params.push(req.query.municipality); where = 'WHERE m.slug=$1'; }
+  res.json(await q(`SELECT w.id, w.code, w.ward_no, w.name, w.suburb, w.municipality_id, m.name AS municipality, m.slug AS municipality_slug
+                      FROM wards w JOIN municipalities m ON m.id=w.municipality_id ${where} ORDER BY m.code, w.ward_no`, params));
+});
 
 r.get('/geo/lookup', async (req, res) => {
   const lat = Number(req.query.lat), lng = Number(req.query.lng);
@@ -93,7 +98,7 @@ r.get('/reports', async (req, res) => {
   const params = [];
   const add = (sql, v) => { params.push(v); where.push(sql.replace('?', `$${params.length}`)); };
   const { q: text, category, status, ward, days, municipality } = req.query;
-  if (text) add(`(r.title || ' ' || r.description || ' ' || coalesce(r.street,'') || ' ' || coalesce(w.suburb,'') || ' ' || coalesce(w.name,'')) ILIKE ?`, `%${text}%`);
+  if (text) add(`(r.title || ' ' || r.description || ' ' || coalesce(r.street,'') || ' ' || coalesce(w.suburb,'') || ' ' || coalesce(w.name,'') || ' ' || coalesce(m.name,'')) ILIKE ?`, `%${text}%`);
   if (category && category !== 'all') add('r.category = ?', category);
   if (status === 'open') where.push(`r.status IN ('submitted','acknowledged','in_progress')`);
   else if (status && status !== 'all') add('r.status = ?', status);

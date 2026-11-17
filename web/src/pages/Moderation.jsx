@@ -135,7 +135,7 @@ function ItemPanel({ itemKey, meta, onDone }) {
         <div className="quote" style={{ background: '#f7f5ef', borderLeft: '3px solid var(--line-strong)', padding: '10px 12px', marginTop: 8 }}>
           {type === 'comment' && t.body}
           {type === 'report' && <><strong>{t.title}</strong><br />{t.description}</>}
-          {type === 'photo' && (t.path ? <img src={t.path} alt="Flagged" style={{ maxHeight: 220 }} /> : 'Photo placeholder (sample)')}
+          {type === 'photo' && (t.path ? <img src={t.path} alt="Flagged" style={{ maxHeight: 220 }} /> : 'Demo photo (no image file stored)')}
           {type === 'status' && <>Proposed <strong>{STATUS_LABEL[t.status]}</strong> (current: {STATUS_LABEL[t.current_status]}).<br />Note: {t.note || '—'}<br />Evidence: {t.evidence || 'none provided'}</>}
         </div>
       </div>

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, NavLink, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from './auth.jsx';
 import Home from './pages/Home.jsx';
+import Landing from './pages/Landing.jsx';
 import NewReport from './pages/NewReport.jsx';
 import ReportDetail from './pages/ReportDetail.jsx';
 import Municipalities from './pages/Municipalities.jsx';
@@ -20,7 +21,7 @@ function Header() {
   useEffect(() => setOpen(false), [loc.pathname]);
   return (
     <>
-      <div className="pilotbar">Pilot area: City of Cape Town · Party register is real IEC data; reports, results and council figures are illustrative samples</div>
+      <div className="pilotbar">Western Cape · Boundaries, election results, councils, contacts and party register are real official data · Reports are demo activity</div>
       <header className="header">
         <div className="container">
           <Link to="/" className="brand" aria-label="CivicWatch Africa home">
@@ -66,7 +67,7 @@ export default function App() {
       <Header />
       <main>
         <Routes>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/reports" element={<Home listOnly />} />
           <Route path="/reports/:id" element={<ReportDetail />} />
           <Route path="/report" element={<NewReport />} />

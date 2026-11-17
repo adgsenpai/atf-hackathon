@@ -39,7 +39,7 @@ export function ReportCard({ r }) {
       </div>
       <h3>{r.title}</h3>
       <div className="small muted">
-        {[r.suburb, r.ward, `Observed ${fmtDate(r.observed_on)}`, `${r.followers} follow`, `${r.updates} updates`].filter(Boolean).join(' · ')}
+        {[r.municipality, r.ward, `Observed ${fmtDate(r.observed_on)}`, `${r.followers} follow`, `${r.updates} updates`].filter(Boolean).join(' · ')}
         {r.precision === 'reduced' && ' · approximate location'}
       </div>
     </Link>

@@ -6,6 +6,7 @@ import reportRoutes, { UPLOAD_DIR } from './routes/reports.js';
 import muniRoutes from './routes/municipalities.js';
 import modRoutes from './routes/moderation.js';
 import partyRoutes from './routes/parties.js';
+import geoRoutes from './routes/geo.js';
 import { seedIfEmpty } from './seed.js';
 import { loadRealDataIfEmpty } from './realdata.js';
 
@@ -19,7 +20,7 @@ app.get('/api/health', async (_req, res) => {
   res.json({ ok: true });
 });
 
-app.use('/api', authRoutes, reportRoutes, muniRoutes, modRoutes, partyRoutes);
+app.use('/api', authRoutes, reportRoutes, muniRoutes, modRoutes, partyRoutes, geoRoutes);
 app.use('/uploads', express.static(UPLOAD_DIR, { maxAge: '7d', fallthrough: false }));
 app.use('/api', (_req, res) => res.status(404).json({ error: 'Not found' }));
 

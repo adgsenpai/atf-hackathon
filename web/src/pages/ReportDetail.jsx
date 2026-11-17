@@ -62,12 +62,12 @@ export default function ReportDetail() {
         <CategoryBadge>{r.category_name}</CategoryBadge>
         <StatusBadge status={r.status} prefix="Status: " />
         <ProvenanceBadge official={official} long />
-        {r.is_sample && <span className="badge warn">Sample data</span>}
+        {r.is_sample && <span className="badge warn">Demo report</span>}
       </div>
       <h1 style={{ marginTop: 10 }}>{r.title}</h1>
       <p className="small muted">
-        Report {r.ref}{r.is_sample ? ' (sample)' : ''} · Submitted by a resident on {fmtDate(r.created_at)} · Observed {fmtDate(r.observed_on)}
-        {r.suburb && <> · {r.suburb}</>}{r.ward && <>, {r.ward}</>}
+        Report {r.ref}{r.is_sample ? ' (demo)' : ''} · Submitted by a resident on {fmtDate(r.created_at)} · Observed {fmtDate(r.observed_on)}
+        {r.municipality && <> · {r.municipality}</>}{r.ward && <>, {r.ward}</>}
       </p>
 
       <div style={{ margin: '16px 0 20px' }}>
@@ -169,7 +169,7 @@ export default function ReportDetail() {
               <>
                 <p className="small">{r.responsibility.service}: usually <strong>{r.responsibility.responsible}</strong>.</p>
                 <p className="small">Official channel: {r.responsibility.channel}</p>
-                <p className="xs muted">Source: {r.responsibility.source} · last checked {r.responsibility.last_checked} · <span className="badge warn">{r.responsibility.verification}</span></p>
+                <p className="xs muted">Source: {r.responsibility.source} · last checked {r.responsibility.last_checked} · <span className="badge official">{r.responsibility.verification}</span></p>
               </>
             ) : <p className="small muted">No responsibility record for this category yet.</p>}
           </div>

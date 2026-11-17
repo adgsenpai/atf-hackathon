@@ -5,33 +5,41 @@ import { listParties, partyMatcher, registryMeta } from './parties.js';
 
 const r = Router();
 
+const COLS = 'm.id, m.slug, m.name, m.province, m.kind, m.is_pilot, m.wards_note, m.integration, m.code, m.category, m.district_code, m.phone, m.website, m.street_address, m.postal_address, m.ward_count';
 async function getMuni(slug) {
-  return one('SELECT * FROM municipalities WHERE slug=$1', [slug]);
+  return one(`SELECT ${COLS}, d.name AS district, d.slug AS district_slug,
+                     ST_XMin(m.geom) AS minx, ST_YMin(m.geom) AS miny, ST_XMax(m.geom) AS maxx, ST_YMax(m.geom) AS maxy
+                FROM municipalities m LEFT JOIN municipalities d ON d.code = m.district_code WHERE m.slug=$1`, [slug]);
 }
 const sourceOf = (muniId, dataset) =>
   one('SELECT source, url, last_checked, verification FROM dataset_sources WHERE municipality_id=$1 AND dataset=$2', [muniId, dataset]);
 
 r.get('/municipalities', async (_req, res) => {
-  res.json(await q(`SELECT m.*, (SELECT count(*) FROM reports r WHERE r.municipality_id=m.id AND NOT r.hidden) AS reports
-                    FROM municipalities m ORDER BY name`));
+  res.json(await q(`SELECT ${COLS}, d.name AS district, d.slug AS district_slug,
+                           (SELECT count(*)::int FROM reports r WHERE r.municipality_id=m.id AND NOT r.hidden AND r.duplicate_of IS NULL) AS reports
+                      FROM municipalities m LEFT JOIN municipalities d ON d.code = m.district_code
+                     ORDER BY CASE m.category WHEN 'A' THEN 0 WHEN 'C' THEN 1 ELSE 2 END, m.code`));
 });
 
 r.get('/municipalities/:slug', async (req, res) => {
   const m = await getMuni(req.params.slug);
   if (!m) return res.status(404).json({ error: 'Municipality not found' });
-  const [responsibilities, source, wards] = await Promise.all([
+  const [responsibilities, source, wards, locals] = await Promise.all([
     q('SELECT * FROM responsibilities WHERE municipality_id=$1 ORDER BY sort', [m.id]),
     sourceOf(m.id, 'responsibilities'),
-    q('SELECT id, code, name, suburb FROM wards WHERE municipality_id=$1 ORDER BY code', [m.id]),
+    q('SELECT id, code, ward_no, name FROM wards WHERE municipality_id=$1 ORDER BY ward_no', [m.id]),
+    m.category === 'C' ? q('SELECT slug, name, code, ward_count FROM municipalities WHERE district_code=$1 ORDER BY code', [m.code]) : [],
   ]);
-  res.json({ ...m, responsibilities, responsibilities_source: source, wards });
+  const { minx, miny, maxx, maxy, ...rest } = m;
+  res.json({ ...rest, bbox: minx == null ? null : [[miny, minx], [maxy, maxx]], responsibilities, responsibilities_source: source, wards, locals });
 });
 
 // Dataset A — official election results. Deliberately separate from council and performance.
 r.get('/municipalities/:slug/elections', async (req, res) => {
   const m = await getMuni(req.params.slug);
   if (!m) return res.status(404).json({ error: 'Municipality not found' });
-  const years = await q('SELECT id, year, level, is_sample FROM elections WHERE municipality_id=$1 ORDER BY year DESC', [m.id]);
+  const years = await q(`SELECT id, year, level, is_sample, title, total_valid_votes, seats_total, quota, independents, district_40pct, report_url, printed_on
+                           FROM elections WHERE municipality_id=$1 ORDER BY year DESC`, [m.id]);
   const chosen = years.find((y) => String(y.year) === String(req.query.year)) || years[0];
   if (!chosen) return res.json({ years: [], election: null, results: [], source: null });
   const [rows, match] = await Promise.all([
@@ -186,7 +194,7 @@ async function performanceData(m, query) {
         key: 'overdue', title: 'Overdue against a service target', value: 'Not available',
         sub: 'No verified service target has been loaded for this category.', period: '—', included: '—',
         method: 'Shown only when an official target with a source exists.',
-        source: '[target document, to be verified]', missing: '—', verification: 'To validate',
+        source: 'No official service target document has been loaded', missing: '—', verification: 'Not available',
       },
     {
       key: 'reopened_dup', title: 'Reopened and duplicate reports', value: `${reopened} · ${merged.length}`,
@@ -208,9 +216,28 @@ async function performanceData(m, query) {
     if (weekly[i]) weekly[i][x.status_source === 'official' ? 'official' : 'user_reported']++;
   }
 
+  const byStatus = {};
+  for (const x of base) byStatus[x.status] = (byStatus[x.status] || 0) + 1;
+  const byCategory = {};
+  for (const x of base) {
+    const c = (byCategory[x.category] ||= { category: x.category, total: 0, resolved: 0, open: 0 });
+    c.total++;
+    if (x.status === 'resolved') c.resolved++; else c.open++;
+  }
+  const byWard = {};
+  for (const x of base) {
+    if (!x.ward_id) continue;
+    const w = (byWard[x.ward_id] ||= { ward_id: x.ward_id, ward: x.ward, total: 0, resolved: 0, acked: 0 });
+    w.total++;
+    if (x.status === 'resolved') w.resolved++;
+    if (x.ack) w.acked++;
+  }
+
   return {
     municipality: { name: m.name, slug: m.slug },
     period: { from, to }, filters: query, metrics, weekly, rows,
+    by_status: byStatus, by_category: Object.values(byCategory).sort((a, b) => b.total - a.total),
+    by_ward: Object.values(byWard).sort((a, b) => b.total - a.total),
     definitions: [
       { term: 'Acknowledged', definition: 'A status event recorded as "Acknowledged", either from an official response or reported by a resident with evidence.', status: 'Proposed' },
       { term: 'Resolved', definition: 'A status event recorded as "Resolved" and not followed by "Reopened".', status: 'Proposed' },
@@ -241,7 +268,7 @@ r.get('/municipalities/:slug/performance.csv', async (req, res) => {
   ].map(esc).join(',')));
   res.setHeader('Content-Type', 'text/csv; charset=utf-8');
   res.setHeader('Content-Disposition', `attachment; filename="${m.slug}-reports.csv"`);
-  res.send(`# CivicWatch Africa — resident-reported data, not an official performance rating. Sample data.\n${lines.join('\n')}\n`);
+  res.send(`# CivicWatch Africa — resident-reported data, not an official performance rating. Reports are demo data; boundaries are real (MDB).\n${lines.join('\n')}\n`);
 });
 
 export default r;

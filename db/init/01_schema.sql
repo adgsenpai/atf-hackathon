@@ -302,3 +302,11 @@ CREATE TABLE corrections (
   note        text,
   created_at  timestamptz NOT NULL DEFAULT now()
 );
+
+-- ---------- DEMO ONLY: fictional parties holding wards, for the accountability showcase ----------
+-- These parties do not exist. Assignment is round-robin and outcomes are generated with the same
+-- odds for every party, so no party is favoured. Never mixed with the real IEC datasets.
+CREATE TABLE demo_ward_holders (
+  ward_id  int PRIMARY KEY REFERENCES wards(id) ON DELETE CASCADE,
+  party    text NOT NULL
+);

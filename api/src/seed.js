@@ -15,6 +15,9 @@ function rng(seed) { // mulberry32
 const rand = rng(20261117);
 const pick = (a) => a[Math.floor(rand() * a.length)];
 const DAY = 864e5;
+// Fictional demo parties (checked: none of these names exist in the IEC register).
+export const DEMO_PARTIES = ['Fynbos Civic Party (demo)', 'Harbour Unity Movement (demo)', 'Kestrel Progressive Alliance (demo)',
+  'Milkwood Residents Association (demo)', "Sunbird People's Front (demo)"];
 
 const TEMPLATES = {
   water: ['Burst pipe flooding the pavement', 'No water supply since yesterday', 'Leaking fire hydrant', 'Low water pressure in the whole street', 'Water meter leaking at the kerb'],
@@ -26,7 +29,7 @@ const TEMPLATES = {
   public_spaces: ['Broken swings at the playground', 'Overgrown grass in the park', 'Damaged bench and broken lighting in the park'],
   other: ['Abandoned vehicle on verge', 'Graffiti on community hall'],
 };
-const STREETS = ['Protea Road', 'Fynbos Avenue', 'Harbour Street', 'Kloof Lane', 'River Road', 'Milkwood Close', 'Sample Crescent', 'Station Road', 'Church Street', 'Main Road'];
+const STREETS = ['Protea Road', 'Fynbos Avenue', 'Harbour Street', 'Kloof Lane', 'River Road', 'Milkwood Close', 'Acacia Crescent', 'Station Road', 'Church Street', 'Main Road'];
 const WARD_BOXES = [ // [latTop, lngLeft] for each 0.04-degree sample ward S01..S06
   [-33.93, 18.44], [-33.93, 18.48], [-33.93, 18.52], [-33.97, 18.44], [-33.97, 18.48], [-33.97, 18.52],
 ];
@@ -54,7 +57,7 @@ export async function seedIfEmpty() {
     const crowd = [];
     for (let i = 0; i < 40; i++) crowd.push(await user(`resident${500 + i}@sample.invalid`, `Resident ${500 + i}`, 'resident'));
 
-    async function report({ author, category, title, description, street, ward, observed, created, sensitive = false, lat, lng }) {
+    async function report({ author, category, title, description, street, ward, observed, created, sensitive = false, lat, lng, municipality_id }) {
       const box = WARD_BOXES[ward];
       const la = lat ?? box[0] - 0.005 - rand() * 0.03;
       const ln = lng ?? box[1] + 0.005 + rand() * 0.03;
@@ -63,7 +66,7 @@ export async function seedIfEmpty() {
       return t.one(
         `INSERT INTO reports (author_id, municipality_id, ward_id, category, title, description, street, lat, lng, sensitive, observed_on, created_at, is_sample)
          VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,true) RETURNING *`,
-        [author.id, cpt.id, geo.ward_id, category, title, description, street, la, ln, sensitive, observed, created]);
+        [author.id, municipality_id ?? cpt.id, geo.ward_id, category, title, description, street, la, ln, sensitive, observed, created]);
     }
     async function event(rep, status, source, by, kind, at, extra = {}) {
       await t.q(
@@ -137,7 +140,7 @@ export async function seedIfEmpty() {
     await comment(leak, official, 'Demo official reply: a team has been asked to re-inspect the pipe.', d('2026-11-10T14:00:00+02:00'), { official: true });
 
     const bins = await report({
-      author: crowd[8], category: 'waste', title: 'Bins not collected for two weeks on Sample Crescent', street: 'Sample Crescent', ward: 3,
+      author: crowd[8], category: 'waste', title: 'Bins not collected for two weeks on Acacia Crescent', street: 'Acacia Crescent', ward: 3,
       description: 'Wheelie bins on the whole street have not been collected for two weeks. Collection day is usually Tuesday.',
       observed: '2026-11-09', created: d('2026-11-09T18:00:00+02:00'),
     });
@@ -164,17 +167,29 @@ export async function seedIfEmpty() {
     await event(drain, 'resolved', 'user_reported', crowd[11], 'author', d('2026-11-02T15:00:00+02:00'), { note: 'Drain was cleared today.', evidence: 'Photo update.' });
     await follow(drain, 9);
 
-    // ---- Background sample reports over the last ~100 days ----
+    // ---- DEMO: fictional parties hold wards (round-robin within each municipality, so every party gets an equal share) ----
+    const allWards = await t.q('SELECT id, municipality_id, ward_no FROM wards ORDER BY municipality_id, ward_no');
+    let k = 0;
+    for (const w of allWards) await t.q('INSERT INTO demo_ward_holders (ward_id, party) VALUES ($1,$2)', [w.id, DEMO_PARTIES[k++ % DEMO_PARTIES.length]]);
+
+    // ---- Background demo reports over the last ~100 days, at random points inside real wards ----
+    // Outcome odds below never look at the ward's demo party: identical for every party.
+    const busy = await t.q(`SELECT w.id, w.municipality_id, m.code FROM wards w JOIN municipalities m ON m.id=w.municipality_id`);
+    const weight = (c) => (c === 'CPT' ? 5 : ['WC023', 'WC024', 'WC044', 'WC025', 'WC043', 'WC032'].includes(c) ? 2 : 1);
+    const pool = busy.flatMap((w) => Array(weight(w.code)).fill(w));
     const cats = Object.keys(TEMPLATES);
-    for (let i = 0; i < 70; i++) {
+    for (let i = 0; i < 300; i++) {
       const category = pick(cats);
       const ward = Math.floor(rand() * 6);
+      const target = pick(pool);
+      const pt = await t.one(`SELECT ST_Y(p) AS lat, ST_X(p) AS lng FROM (SELECT (ST_Dump(ST_GeneratePoints(geom, 1, $2))).geom AS p FROM wards WHERE id=$1) x`,
+        [target.id, Math.floor(rand() * 1e6)]);
       const daysAgo = 3 + Math.floor(rand() * 100);
       const created = new Date(now - daysAgo * DAY + Math.floor(rand() * 10) * 3600e3);
       const author = pick(crowd);
       const street = pick(STREETS);
       const rep = await report({
-        author, category, ward, street, title: `${pick(TEMPLATES[category])}, ${street}`,
+        author, category, ward, street, title: `${pick(TEMPLATES[category])}, ${street}`, lat: pt.lat, lng: pt.lng, municipality_id: target.municipality_id,
         description: 'Demo report generated for the CivicWatch demo. Details are illustrative only.',
         observed: new Date(created.getTime() - Math.floor(rand() * 2) * DAY).toISOString().slice(0, 10), created,
         sensitive: rand() < 0.06,
